@@ -938,6 +938,14 @@ defmodule NimbleParsec do
   end
 
   @doc """
+  """
+  @spec sized_binary(t, t) :: t
+  def sized_binary(combinator \\ empty(), size_combinator)
+      when is_combinator(combinator) and is_combinator(size_combinator) do
+    post_traverse(combinator, size_combinator, {__MODULE__, :__sized_binary__, []})
+  end
+
+  @doc """
   Puts the result of the given combinator as the first element
   of a tuple with the `line` as second element.
 
@@ -1856,6 +1864,11 @@ defmodule NimbleParsec do
   @doc false
   def __byte_offset__(_rest, acc, context, _line, offset) do
     {[{reverse_now_or_later(acc), offset}], context}
+  end
+
+  @doc false
+  def __sized_binary__(rest, [size], context, _line, _offset) do
+    {[<<rest::binary-size(size)>>], context}
   end
 
   @doc false

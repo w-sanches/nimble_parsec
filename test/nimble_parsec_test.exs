@@ -790,6 +790,14 @@ defmodule NimbleParsecTest do
     end
   end
 
+  describe "sized_binary/2 combinator" do
+    defparsecp :next_bytes, sized_binary(integer(2))
+
+    test "returns ok/error" do
+      assert next_bytes("023210") == {:ok, ["32"], "10", %{}, {1, 0}, 4}
+    end
+  end
+
   describe "wrap/2 combinator" do
     defparsecp :two_integers_wrapped,
                integer(1)
