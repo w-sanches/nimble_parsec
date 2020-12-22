@@ -938,6 +938,21 @@ defmodule NimbleParsec do
   end
 
   @doc """
+  Reads size_combinator from input and then reads N bytes from the binary.
+  size_combinator must return a list with a single integer.
+
+  ## Examples
+      defmodule MyParser do
+        import NimbleParsec
+
+        defparsecp :bytes_after_colon, sized_binary(integer(1) |> ignore(string(":")))
+      end
+
+      MyParser.bytes_after_colon("2:abcd")
+      #=> {:ok, ["ab"], "cd", %{}, {1, 0}, 4}
+
+      MyParser.bytes_after_colon("9:abcd")
+      #=> {:error, "expected 9 bytes to read", "abcd", %{}, {1, 0}, 2}
   """
   @spec sized_binary(t, t) :: t
   def sized_binary(combinator \\ empty(), size_combinator)
@@ -1868,7 +1883,11 @@ defmodule NimbleParsec do
 
   @doc false
   def __sized_binary__(rest, [size], context, _line, _offset) do
-    {[<<rest::binary-size(size)>>], context}
+    try do
+      {[<<rest::binary-size(size)>>], context}
+    rescue
+      _ in ArgumentError -> {:error, "expected #{size} bytes to read"}
+    end
   end
 
   @doc false

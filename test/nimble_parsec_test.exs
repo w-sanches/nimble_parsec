@@ -791,10 +791,21 @@ defmodule NimbleParsecTest do
   end
 
   describe "sized_binary/2 combinator" do
-    defparsecp :next_bytes, sized_binary(integer(2))
+    defparsecp :bytes_after_colon, sized_binary(integer(1) |> ignore(string(":")))
 
+    test "is bound" do
+      assert bound?(sized_binary(integer(1)))
+    end
+
+    @error "expected ASCII character in the range '0' to '9', followed by string \":\""
+    test "halts and returns size_combinator errors" do
+      assert bytes_after_colon("abcde") == {:error, @error, "abcde", %{}, {1, 0}, 0}
+    end
+
+    @error "expected 4 bytes to read"
     test "returns ok/error" do
-      assert next_bytes("023210") == {:ok, ["32"], "10", %{}, {1, 0}, 4}
+      assert bytes_after_colon("4:abc") == {:error, @error, "abc", %{}, {1, 0}, 2}
+      assert bytes_after_colon("2:abcd") == {:ok, ["ab"], "cd", %{}, {1, 0}, 4}
     end
   end
 
