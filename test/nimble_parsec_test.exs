@@ -105,7 +105,7 @@ defmodule NimbleParsecTest do
   # end
 
   # describe "integer/2 combinator with exact length" do
-  #   defparsecp :exact_integer, integer(2), debug: true
+  #   defparsecp :exact_integer, integer(2)
   #   defparsecp :prefixed_integer, string("T") |> integer(2)
 
   #   @error "expected ASCII character in the range '0' to '9', followed by ASCII character in the range '0' to '9'"
