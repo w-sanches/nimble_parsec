@@ -946,7 +946,7 @@ defmodule NimbleParsec do
       defmodule MyParser do
         import NimbleParsec
 
-        defparsecp :bytes_after_colon, sized_binary(integer(1) |> ignore(string(":")))
+        defparsec :bytes_after_colon, sized_binary(integer(1) |> ignore(string(":")))
       end
 
       MyParser.bytes_after_colon("2:abcd")
