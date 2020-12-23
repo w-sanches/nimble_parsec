@@ -804,6 +804,27 @@ defmodule NimbleParsec.Compiler do
     {:ok, [input], guards, [var], metadata}
   end
 
+  defp bound_combinator({:sized_binary, size, string}, %{line: line, offset: offset} = metadata) do
+    <<binary::binary-size(size), _rest::binary>> = string
+
+    line =
+      case String.split(binary, "\n") do
+        [_] ->
+          line
+
+        [_ | _] = many ->
+          last_size = many |> List.last() |> byte_size()
+          line_offset = add_offset(offset, size - last_size)
+
+          quote do
+            {elem(unquote(line), 0) + unquote(length(many) - 1), unquote(line_offset)}
+          end
+      end
+
+    offset = add_offset(offset, size)
+    {:ok, [binary], [], [binary], %{metadata | line: line, offset: offset}}
+  end
+
   defp bound_combinator({:label, combinators, _labels}, metadata) do
     case take_bound_combinators(combinators, [], [], [], [], metadata) do
       {[], inputs, guards, outputs, _, metadata} ->
@@ -920,6 +941,10 @@ defmodule NimbleParsec.Compiler do
       end
 
     prefix <> Enum.join([Enum.join(inclusive, " or") | exclusive], ", and not")
+  end
+
+  defp label({:sized_binary, size, binary}) do
+    "at least #{inspect(size)} byte(s) in #{inspect(binary)}"
   end
 
   defp label(:eos) do

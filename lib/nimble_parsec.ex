@@ -221,6 +221,7 @@ defmodule NimbleParsec do
   @typep bound_combinator ::
            {:bin_segment, [inclusive_range], [exclusive_range], bin_modifier}
            | {:string, binary}
+           | {:sized_binary, non_neg_integer}
            | :eos
 
   @typep maybe_bound_combinator ::
@@ -939,7 +940,7 @@ defmodule NimbleParsec do
 
   @doc """
   Reads size_combinator from input and then reads N bytes from the binary.
-  size_combinator must return a list with a single integer.
+  size_combinator must return a list with a single non-negative integer.
 
   ## Examples
       defmodule MyParser do
@@ -952,12 +953,15 @@ defmodule NimbleParsec do
       #=> {:ok, ["ab"], "cd", %{}, {1, 0}, 4}
 
       MyParser.bytes_after_colon("9:abcd")
-      #=> {:error, "expected 9 bytes to read", "abcd", %{}, {1, 0}, 2}
+      #=> {:error, "expected at least 9 byte(s) in \"abcd\"", "abcd", %{}, {1, 0}, 2}
   """
   @spec sized_binary(t, t) :: t
   def sized_binary(combinator \\ empty(), size_combinator)
       when is_combinator(combinator) and is_combinator(size_combinator) do
-    post_traverse(combinator, size_combinator, {__MODULE__, :__sized_binary__, []})
+    size = 3
+    string = "abce"
+
+    [{:sized_binary, size, string} | combinator]
   end
 
   @doc """
@@ -1879,15 +1883,6 @@ defmodule NimbleParsec do
   @doc false
   def __byte_offset__(_rest, acc, context, _line, offset) do
     {[{reverse_now_or_later(acc), offset}], context}
-  end
-
-  @doc false
-  def __sized_binary__(rest, [size], context, _line, _offset) do
-    try do
-      {[<<rest::binary-size(size)>>], context}
-    rescue
-      _ in ArgumentError -> {:error, "expected #{size} bytes to read"}
-    end
   end
 
   @doc false
