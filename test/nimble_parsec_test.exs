@@ -802,10 +802,10 @@ defmodule NimbleParsecTest do
       assert bytes_after_colon("abcde") == {:error, @error, "abcde", %{}, {1, 0}, 0}
     end
 
-    @error "expected 4 bytes to read"
+    @error "expected 7 bytes to read"
     test "returns ok/error" do
       assert bytes_after_colon("2:abcd") == {:ok, ["ab"], "cd", %{}, {1, 0}, 4}
-      assert bytes_after_colon("4:abc") == {:error, @error, "abc", %{}, {1, 0}, 2}
+      assert bytes_after_colon("7:abcd") == {:error, @error, "abcd", %{}, {1, 0}, 2}
     end
   end
 
